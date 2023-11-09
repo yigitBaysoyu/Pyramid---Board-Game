@@ -1,4 +1,4 @@
-package service
+package entity
 
 import entity.*
 import org.junit.jupiter.api.BeforeEach
