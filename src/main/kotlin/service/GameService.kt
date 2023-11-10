@@ -1,8 +1,7 @@
 package service
 
-import entity.Card
-import entity.Player
-import entity.PyramidGame
+import entity.*
+import java.util.*
 
 /**
  * The GameService class is responsible for managing the state and logic of the Pyramid game.
@@ -23,9 +22,25 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
     {
         val game = PyramidGame(player1Name, player2Name)
 
+        //val standartDeck = createStandartDeck().shuffled()
+        //createPyramid(standartDeck)
+
         rootService.currentGame = game
 
         onAllRefreshables { refreshAfterStartNewGame() }
+    }
+
+    private fun createStandartDeck() : Stack<Card>{
+
+        val deck = Stack<Card>()
+        for(suit in CardSuit.values()){
+            for(value in CardValue.values()){
+                var card = Card(suit, value)
+                deck.push(card)
+            }
+        }
+
+        return deck
     }
 
     /**
@@ -69,12 +84,14 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
 
         val pyramid = game.pyramid
 
-        var pyramidIsEmpty = true
-        for(level in 1..7) {
-            if(pyramid[level].isNotEmpty()){
-                pyramidIsEmpty = false
-            }
-        }
+        var pyramidIsEmpty = pyramid.all { level -> level.isEmpty() }
+
+        //var pyramidIsEmpty = true
+        //for(level in 1..7) {
+        //    if(pyramid[level].isNotEmpty()){
+        //        pyramidIsEmpty = false
+        //    }
+        //}
 
         if(pyramidIsEmpty || game.passCounter == 2){
             onAllRefreshables { refreshAfterGameEnd() }
@@ -131,24 +148,18 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         val game = rootService.currentGame
         checkNotNull(game) { "No game currently running."}
 
-        for(i in 0..6){
-            if(game.pyramid[i].contains(card1)){
-                game.collectedStoragePile.push(card1)
-                game.pyramid[i].remove(card1)
-            }
-            if(game.pyramid[i].contains(card2)){
-                game.collectedStoragePile.push(card2)
-                game.pyramid[i].remove(card2)
-            }
+        game.pyramid.forEach { level ->
+            level.remove(card1)
+            level.remove(card2)
         }
 
-        if(game.storagePile.peek().equals(card1)){
-            game.collectedStoragePile.push(card1)
-            game.storagePile.pop()
-        }
-        if(game.storagePile.peek().equals(card2)){
-            game.collectedStoragePile.push(card2)
-            game.storagePile.pop()
+        // Check if storagePile is not empty and the top card matches either card1 or card2
+        with(game.storagePile) {
+            if (isNotEmpty()) {
+                if (peek() == card1 || peek() == card2) {
+                    game.collectedStoragePile.push(pop())
+                }
+            }
         }
     }
 

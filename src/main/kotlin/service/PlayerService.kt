@@ -53,7 +53,7 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
       checkNotNull(game) { "No game started yet."}
 
       if(game.drawPile.isEmpty()){
-         throw Exception("there are no cards to draw, choose an another action.")
+         throw Exception("there are no cards to draw, choose another action.")
       }else{
          val removedCard = game.drawPile.pop()
          game.storagePile.push(removedCard)
