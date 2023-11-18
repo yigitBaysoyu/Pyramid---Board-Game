@@ -22,10 +22,14 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
     {
         val game = PyramidGame(player1Name, player2Name)
 
-        //val standartDeck = createStandartDeck().shuffled()
-        //createPyramid(standartDeck)
+        var standartDeck = createStandartDeck().shuffled()
+        val pyramidDeck = standartDeck.take(28)
+        game.drawPile = Stack<Card>().apply { addAll(standartDeck.drop(28)) }
+
 
         rootService.currentGame = game
+
+        createPyramid(pyramidDeck)
 
         onAllRefreshables { refreshAfterStartNewGame() }
     }
@@ -42,6 +46,9 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
 
         return deck
     }
+
+
+
 
     /**
      * Creates the pyramid structure of cards required at the beginning of the game.
@@ -69,7 +76,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
             }
             game.pyramid.add(levelList)
         }
-
+        rootService.currentGame = game
     }
 
     /**
@@ -85,13 +92,6 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         val pyramid = game.pyramid
 
         var pyramidIsEmpty = pyramid.all { level -> level.isEmpty() }
-
-        //var pyramidIsEmpty = true
-        //for(level in 1..7) {
-        //    if(pyramid[level].isNotEmpty()){
-        //        pyramidIsEmpty = false
-        //    }
-        //}
 
         if(pyramidIsEmpty || game.passCounter == 2){
             onAllRefreshables { refreshAfterGameEnd() }
@@ -161,6 +161,8 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
                 }
             }
         }
+
+        rootService.currentGame = game
     }
 
     /**

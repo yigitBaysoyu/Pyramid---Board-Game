@@ -30,7 +30,7 @@ class PyramidGame(player1Name: String, player2Name: String) {
 
     var pyramid: MutableList<MutableList<Card>> = mutableListOf()
 
-    val drawPile: Stack<Card> = Stack()
+    var drawPile: Stack<Card> = Stack()
     val collectedStoragePile: Stack<Card> = Stack()
     val storagePile: Stack<Card> = Stack()
 
