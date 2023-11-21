@@ -1,6 +1,7 @@
 package entity
 
-import java.util.Stack
+import tools.aqua.bgw.util.Stack
+
 
 /**
  * Entity to represent the state and functionalities of the card game "Pyramid".

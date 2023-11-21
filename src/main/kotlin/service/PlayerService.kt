@@ -37,9 +37,10 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
       game.passCounter = 0
       GameService(rootService).removePair(card1, card2)
       GameService(rootService).switchPlayer()
+      rootService.currentGame = game
       onAllRefreshables { refreshAfterRemovePair(player, listOf(card1, card2)) }
 
-      }
+   }
 
    /**
     * Draws the top card from the draw pile and places it on top of the reserve pile if possible.
@@ -59,7 +60,8 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
          game.storagePile.push(removedCard)
 
          game.passCounter = 0
-
+         GameService(rootService).switchPlayer()
+         rootService.currentGame = game
          onAllRefreshables { refreshAfterRevealCard(player, removedCard) }
       }
    }
@@ -77,6 +79,7 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
 
       game.passCounter++
       GameService(rootService).switchPlayer()
+      rootService.currentGame = game
       onAllRefreshables { refreshAfterPass(player) }
 
    }

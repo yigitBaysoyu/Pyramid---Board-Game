@@ -80,7 +80,8 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
             mainPanel,
             p1Input,
             p2Input,
-            startButton, quitButton
+            startButton,
+            quitButton
         )
     }
 }

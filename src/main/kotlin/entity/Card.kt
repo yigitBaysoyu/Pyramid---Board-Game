@@ -5,7 +5,7 @@ package entity
  *
  * It is characterized by a [CardSuit] and a [CardValue]
  */
-data class Card(val suit: CardSuit, val value: CardValue) {
+data class Card(val suit: CardSuit, val value: CardValue, val flipped: Boolean = false) {
     override fun toString() : String {
         return "$suit$value"
     }

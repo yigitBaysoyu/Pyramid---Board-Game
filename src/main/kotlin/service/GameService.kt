@@ -1,7 +1,7 @@
 package service
 
 import entity.*
-import java.util.*
+import tools.aqua.bgw.util.Stack
 
 /**
  * The GameService class is responsible for managing the state and logic of the Pyramid game.
@@ -22,19 +22,22 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
     {
         val game = PyramidGame(player1Name, player2Name)
 
-        var standartDeck = createStandartDeck().shuffled()
-        val pyramidDeck = standartDeck.take(28)
-        game.drawPile = Stack<Card>().apply { addAll(standartDeck.drop(28)) }
+        var standardDeck = createStandardDeck()
+        standardDeck.shuffle()
+
+        val pyramidDeck = Stack(standardDeck.popAll(28))
+        game.drawPile = standardDeck
+        println("Deck size after popping for pyramid: ${standardDeck.size}")
 
 
         rootService.currentGame = game
 
-        createPyramid(pyramidDeck)
+        createPyramid(pyramidDeck.clear())
 
         onAllRefreshables { refreshAfterStartNewGame() }
     }
 
-    private fun createStandartDeck() : Stack<Card>{
+    private fun createStandardDeck() : Stack<Card>{
 
         val deck = Stack<Card>()
         for(suit in CardSuit.values()){
@@ -68,10 +71,15 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         var currentCardIndex = 0
         for(level in 1..7) {
             val levelList = mutableListOf<Card>()
-            for(card in 1..level){
+            for(cardIndex in 1..level){
                 if(currentCardIndex < allCards.size){
-                    levelList.add(allCards[currentCardIndex])
-                    currentCardIndex++
+                    val card = allCards[currentCardIndex++]
+                    // Flip the outermost cards
+                    if (cardIndex == 1 || cardIndex == level) {
+                        levelList.add(card.copy(flipped = true))
+                    } else {
+                        levelList.add(card)
+                    }
                 }
             }
             game.pyramid.add(levelList)
@@ -89,9 +97,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         val game = rootService.currentGame
         checkNotNull(game) { "No game currently running."}
 
-        val pyramid = game.pyramid
-
-        var pyramidIsEmpty = pyramid.all { level -> level.isEmpty() }
+        val pyramidIsEmpty = game.pyramid.all { level -> level.isEmpty() }
 
         if(pyramidIsEmpty || game.passCounter == 2){
             onAllRefreshables { refreshAfterGameEnd() }
@@ -149,8 +155,12 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         checkNotNull(game) { "No game currently running."}
 
         game.pyramid.forEach { level ->
-            level.remove(card1)
-            level.remove(card2)
+            if (level.remove(card1)) {
+                game.collectedStoragePile.push(card1)
+            }
+            if (level.remove(card2)) {
+                game.collectedStoragePile.push(card2)
+            }
         }
 
         // Check if storagePile is not empty and the top card matches either card1 or card2
@@ -163,6 +173,29 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         }
 
         rootService.currentGame = game
+        flipAdjacentCards()
+    }
+
+    private fun flipAdjacentCards() {
+        val game = rootService.currentGame ?: return
+
+        for (levelIndex in game.pyramid.indices) {
+            for (cardIndex in game.pyramid[levelIndex].indices) {
+                val card = game.pyramid[levelIndex][cardIndex]
+                if (!card.flipped && isOuterCard(levelIndex, cardIndex)) {
+                    game.pyramid[levelIndex][cardIndex] = card.copy(flipped = true)
+                }
+            }
+        }
+        rootService.currentGame = game
+    }
+
+    private fun isOuterCard(levelIndex: Int, cardIndex: Int): Boolean {
+        val game = rootService.currentGame ?: return false
+        val level = game.pyramid[levelIndex]
+
+        // Check if it's the first or last card in the level
+        return cardIndex == 0 || cardIndex == level.size - 1
     }
 
     /**
