@@ -23,7 +23,13 @@ class PyramidApplication : BoardGameApplication("Pyramid Game"), Refreshable {
     }
 
     private val gameFinishedMenuScene = GameFinishedMenuScene(rootService).apply {
+        quitButton.onMouseClicked = {
+            exit()
+        }
 
+        newGameButton.onMouseClicked = {
+            showMenuScene(newGameMenuScene, 0)
+        }
     }
 
     init {

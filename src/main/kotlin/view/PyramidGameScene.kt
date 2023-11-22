@@ -5,6 +5,7 @@ import entity.Player
 import service.CardImageLoader
 import service.RootService
 import tools.aqua.bgw.components.gamecomponentviews.CardView
+import tools.aqua.bgw.components.uicomponents.Button
 import tools.aqua.bgw.components.uicomponents.Label
 import tools.aqua.bgw.core.BoardGameScene
 import tools.aqua.bgw.util.BidirectionalMap
@@ -16,30 +17,63 @@ import java.awt.Color
 
 class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1920, 1240), Refreshable {
 
-
-    private val labelWidth = 300
+    //Player Names
+    private val labelWidth = 550
     private val labelHeight = 50
-    private val sideMargin = 100 // Adjust this margin to move labels closer to or further from the sides
+    private val sideMargin = 60 // Adjust this margin to move labels closer to or further from the sides
 
-    // Player name labels positioned at the sides
+    //Player Points
+    private val pointsLabelWidth = 150
+    private val pointsLabelHeight = 30
+
+
     private val player1NameLabel = Label(
         posX = sideMargin, // X position from the left edge
         posY = 50,
         width = labelWidth,
         height = labelHeight,
         text = "Player 1"
-    )
+    ).apply {
+        font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+        // More styling options can be set here
+    }
+
     private val player2NameLabel = Label(
         posX = 1920 - labelWidth - sideMargin, // X position from the right edge
         posY = 50,
         width = labelWidth,
         height = labelHeight,
         text = "Player 2"
-    )
+    ).apply {
+        font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+        // More styling options can be set here
+    }
+
+
+    private val player1PointsLabel = Label(
+        posX = player1NameLabel.posX + (labelWidth - pointsLabelWidth) / 2, // Center under the player name label
+        posY = player1NameLabel.posY + labelHeight + 85, // Below the player name label
+        width = pointsLabelWidth,
+        height = pointsLabelHeight,
+        text = "0"
+    ).apply {
+        font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD)
+    }
+
+    private val player2PointsLabel = Label(
+        posX = player2NameLabel.posX + (labelWidth - pointsLabelWidth) / 2, // Center under the player name label
+        posY = player2NameLabel.posY + labelHeight + 85, // Below the player name label
+        width = pointsLabelWidth,
+        height = pointsLabelHeight,
+        text = "0"
+    ).apply {
+        font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD)
+    }
+
 
     private val pyramidLayout: MutableList<MutableList<CardView>> = mutableListOf()
 
-    private val drawPile = LabeledStackView(posX = 275, posY = 500, "Draw Pile").apply {
+    private val drawPile = LabeledStackView(posX = 270, posY = 500, "Draw Pile").apply {
         onMouseClicked = {
             rootService.currentGame?.let { game ->
                 // Determine which player's turn it is and perform the action
@@ -54,7 +88,22 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             //println(rootService.currentGame?.storagePile?.peek().toString())
         }
     }
-    private val reservePile = LabeledStackView(posX = 1515, posY = 500, "Reserve Pile")
+    private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile")
+
+    // Pass Button
+    private val passButton = Button(
+        width = 260,
+        height = 120,
+        posX = 1565,       // Centered horizontally
+        posY = 1040,       // Positioned at the bottom
+    ).apply {
+        visual = ImageVisual("PassButton.png")
+        onMouseClicked = {
+            // Handle pass action
+            handlePassAction()
+        }
+    }
+
 
 
 
@@ -68,27 +117,68 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
      */
     private val cardMap: BidirectionalMap<Card, CardView> = BidirectionalMap()
 
+
+
     init {
 
         background = ColorVisual(57, 70, 59)
 
-        // Customize labels if needed
-        player1NameLabel.apply {
-            font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-            // More styling options can be set here
-        }
-        player2NameLabel.apply {
-            font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-            // More styling options can be set here
-        }
 
         // Add the player name labels to the scene
         addComponents(
             drawPile,
             reservePile,
             player1NameLabel,
-            player2NameLabel
+            player2NameLabel,
+            player1PointsLabel,
+            player2PointsLabel,
+            passButton
         )
+    }
+
+    private fun handlePassAction() {
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game found." }
+
+        // Implement the logic for passing the turn
+        // For example, toggle the player's turn and update the game state
+        game.passCounter++
+
+        if(game.passCounter == 2){
+            rootService.gameService.endGame()
+        }
+
+        game.playerOnesTurn = !game.playerOnesTurn
+        highlightCurrentPlayer()
+
+        // You might also want to update other parts of the UI or game state as needed
+    }
+
+    private fun updatePlayerPoints() {
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game found." }
+
+        // Update the labels with the current points from the game state
+        player1PointsLabel.text = "${game.player1.score}"
+        player2PointsLabel.text = "${game.player2.score}"
+    }
+
+    private fun highlightCurrentPlayer() {
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game found." }
+
+        // Reset styles for both player labels to default
+        player1NameLabel.font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+        player2NameLabel.font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+
+        // Highlight the label of the current player
+        if (game.playerOnesTurn) {
+            player1NameLabel.font = Font(size = 67, color = Color(208, 0, 0), fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+            // Optionally add a border or other visual indicator here
+        } else {
+            player2NameLabel.font = Font(size = 67, color = Color(208, 0, 0), fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+            // Optionally add a border or other visual indicator here
+        }
     }
 
 
@@ -97,6 +187,14 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         val game = rootService.currentGame
         checkNotNull(game) { "No started game found." }
 
+        player1NameLabel.text = game.player1.name
+        player2NameLabel.text = game.player2.name
+        highlightCurrentPlayer()
+
+        // Initialize points labels with zero points
+        player1PointsLabel.text = "0"
+        player2PointsLabel.text = "0"
+
         cardMap.clear()
         val cardImageLoader = CardImageLoader()
 
@@ -104,9 +202,9 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         initializeStackView(game.drawPile, drawPile, cardImageLoader)
         initializeStackView(game.storagePile, reservePile, cardImageLoader)
 
+
         val pyramidCards = game.pyramid.flatten()
         initializePyramid(pyramidCards)
-
 
     }
 
@@ -197,12 +295,15 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
 
 
-
+    override fun refreshAfterPass(player: Player) = handlePassAction()
     override fun refreshAfterRevealCard(player: Player, revealedCard: Card) = refreshAfterDrawCard(player)
+
 
     private fun refreshAfterDrawCard(player: Player){
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
+
+        highlightCurrentPlayer()
 
         when (player) {
             game.player1 -> moveCardView(cardMap.forward(game.storagePile.peek()),reservePile, true)
@@ -230,6 +331,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
         cardView.removeFromParent()
         toStack.add(cardView)
+    }
+
+    private fun checkGameStatus(){
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game found." }
     }
 
 

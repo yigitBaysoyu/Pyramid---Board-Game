@@ -8,24 +8,22 @@ import tools.aqua.bgw.core.MenuScene
 import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 
-class NewGameMenuScene(private val rootService: RootService) : MenuScene(width = 700 , height = 540, background = ColorVisual(57, 70, 59)), Refreshable {
+class NewGameMenuScene(private val rootService: RootService) : MenuScene(width = 410 , height = 490, background = ImageVisual("NewGameArtwork.png")), Refreshable {
 
-    private val mainPanel = Label(
-        width = 410,
-        height = 490,
-        posX = (700 - 410) / 2,
-        posY = (540 - 490) / 2
-    ).apply {
-        visual = ImageVisual("NewGameArtwork.png")
-    }
+    val adjustInputPosX = 105
+    val adjustInputPosY = -87
+
+    val adjustButtonPosX = 100
+    val adjustButtonPosY = 84
+
 
     // type inference fails here, so explicit  ": TextField" is required
     // see https://discuss.kotlinlang.org/t/unexpected-type-checking-recursive-problem/6203/14
     private val p1Input: TextField = TextField(
-        width = 115,
+        width = 116,
         height = 24,
-        posX = 185,
-        posY = 175,
+        posX = (410-116)/2 - adjustInputPosX,
+        posY = (490-24)/2 + adjustInputPosY,
         text = listOf("Homer", "Marge", "Bart", "Lisa", "Maggie").random()
     ).apply {
         onKeyTyped = {
@@ -36,10 +34,10 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
     // type inference fails here, so explicit  ": TextField" is required
     // see https://discuss.kotlinlang.org/t/unexpected-type-checking-recursive-problem/6203/14
     private val p2Input: TextField = TextField(
-        width = 115,
+        width = 116,
         height = 24,
-        posX = 400,
-        posY = 175,
+        posX = (410-116)/2 + adjustInputPosX,
+        posY = (490-24)/2 + adjustInputPosY,
         text = listOf("Fry", "Bender", "Leela", "Amy", "Zoidberg").random()
 
     ).apply {
@@ -49,13 +47,12 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
     }
 
     private val startButton = Button(
-        width = 90,
-        height = 30,
-        posX = 210,
-        posY = 270,
-        text = "Start"
+        width = 120,
+        height = 50,
+        posX = (410-120)/2 + adjustButtonPosX,
+        posY = (490-50)/2 + adjustButtonPosY,
     ).apply {
-        visual = ColorVisual(116, 146, 102)
+        visual = ImageVisual("StartButton.png")
         onMouseClicked = {
             rootService.gameService.startNewGame(
                 p1Input.text.trim(),
@@ -65,19 +62,17 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
     }
 
     val quitButton = Button(
-        width = 90,
-        height = 30,
-        posX = 400,
-        posY = 270,
-        text = "Quit"
+        width = 125,
+        height = 50,
+        posX = (410-120)/2 - adjustButtonPosX,
+        posY = (490-50)/2 + adjustButtonPosY,
     ).apply {
-        visual = ColorVisual(217, 95, 78)
+        visual = ImageVisual("QuitButton.png")
     }
 
     init {
         opacity = 1.0
         addComponents(
-            mainPanel,
             p1Input,
             p2Input,
             startButton,
