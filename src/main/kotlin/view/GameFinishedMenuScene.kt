@@ -13,33 +13,31 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
 
     private val labelWidth = 125
     private val labelHeight = 50
-    private val adjustNamePosX = 100
+    private val adjustNamePosX = 96
     private val adjustNamePosY = -60
 
-    private val adjustScorePosX = 100
+    private val adjustScorePosX = 96
     private val adjustScorePosY = -20
 
     private val adjustButtonPosX = 90
     private val adjustButtonPosY = 160
 
-    private val player1NameLabel = Label(
+    private val p1NameLabel = Label(
         posX = (410-labelWidth)/2 - adjustNamePosX, // X position from the left edge
         posY = (490-labelHeight)/2 + adjustNamePosY,
         width = labelWidth,
         height = labelHeight,
-        text = "abcdefghijklmn"
     ).apply {
-        font = Font(size = 25, color = Color.BLACK, fontWeight = Font.FontWeight.NORMAL, family = "Copperplate")
+        font = Font(size = 26, color = Color.BLACK, family = "Copperplate")
     }
 
-    private val player2NameLabel = Label(
+    private val p2NameLabel = Label(
         posX = (410-labelWidth)/2 + adjustNamePosX, // X position from the left edge
         posY = (490-labelHeight)/2 + adjustNamePosY,
         width = labelWidth,
         height = labelHeight,
-        text = "Player 2"
     ).apply {
-        font = Font(size = 25, color = Color.BLACK, fontWeight = Font.FontWeight.NORMAL, family = "Copperplate")
+        font = Font(size = 26, color = Color.BLACK, family = "Copperplate")
     }
 
     private val p1Score = Label(
@@ -49,7 +47,7 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
         height = 30,
         text = "0"
     ).apply {
-        font = Font(size = 60, color = Color.BLACK, fontWeight = Font.FontWeight.NORMAL, family = "Copperplate")
+        font = Font(size = 60, color = Color.BLACK, family = "Copperplate")
     }
 
     private val p2Score = Label(
@@ -59,16 +57,39 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
         height = 30,
         text = "0"
     ).apply {
-        font = Font(size = 60, color = Color.BLACK, fontWeight = Font.FontWeight.NORMAL, family = "Copperplate")
+        font = Font(size = 60, color = Color.BLACK, family = "Copperplate")
     }
 
-    private val gameResult = Label(
-        width = 300,
-        height = 35,
-        posX = 50,
-        posY = 195
-     ).apply {
+    private val gameResultP1 = Label(
+        posX = (410-labelWidth)/2 - adjustNamePosX, // X position from the left edge
+        posY = (490-labelHeight)/2 + 50,
+        width = labelWidth,
+        height = labelHeight,
+        text = "Winner!"
+    ).apply {
+        font = Font(size = 26, color = Color.BLACK, family = "Copperplate")
     }
+
+    private val gameResultP2 = Label(
+        posX = (410-labelWidth)/2 + adjustNamePosX, // X position from the left edge
+        posY = (490-labelHeight)/2 + 50,
+        width = labelWidth,
+        height = labelHeight,
+        text = "Winner!"
+    ).apply {
+        font = Font(size = 26, color = Color.BLACK, family = "Copperplate")
+    }
+
+    private val gameResultD = Label(
+        posX = (410-labelWidth)/2 , // X position from the left edge
+        posY = (490-labelHeight)/2 + 50,
+        width = labelWidth,
+        height = labelHeight,
+        text = "Draw..."
+    ).apply {
+        font = Font(size = 26, color = Color.BLACK, family = "Copperplate")
+    }
+
 
     val quitButton = Button(
         width = 125,
@@ -78,6 +99,7 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
     ).apply{
         visual = ImageVisual("QuitButton.png")
     }
+
 
     val newGameButton = Button(
         width = 120,
@@ -91,22 +113,42 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
     init {
         opacity = 1.0
         addComponents(
-            player1NameLabel,
-            player2NameLabel,
+            p1NameLabel,
+            p2NameLabel,
             p1Score,
             p2Score,
-            gameResult,
             newGameButton,
             quitButton)
     }
 
+    private fun gameResult(){
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game running" }
 
+        val p1Score = game.player1.score
+        val p2Score = game.player2.score
+
+        if(p1Score > p2Score){
+            addComponents(gameResultP1)
+        }else if(p1Score < p2Score){
+            addComponents(gameResultP2)
+        }else{
+            addComponents(gameResultD)
+        }
+
+    }
 
     override fun refreshAfterGameEnd() {
         val game = rootService.currentGame
         checkNotNull(game) { "No game running" }
+
+        p1NameLabel.text = game.player1.name
+        p2NameLabel.text = game.player2.name
+
         p1Score.text = game.player1.score.toString()
         p2Score.text = game.player2.score.toString()
+
+        gameResult()
     }
 
 

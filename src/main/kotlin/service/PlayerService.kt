@@ -60,8 +60,8 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
          game.storagePile.push(removedCard)
 
          game.passCounter = 0
-         GameService(rootService).switchPlayer()
          rootService.currentGame = game
+         GameService(rootService).switchPlayer()
          onAllRefreshables { refreshAfterRevealCard(player, removedCard) }
       }
    }

@@ -33,10 +33,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         width = labelWidth,
         height = labelHeight,
         text = "Player 1"
-    ).apply {
-        font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-        // More styling options can be set here
-    }
+    )
 
     private val player2NameLabel = Label(
         posX = 1920 - labelWidth - sideMargin, // X position from the right edge
@@ -44,10 +41,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         width = labelWidth,
         height = labelHeight,
         text = "Player 2"
-    ).apply {
-        font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-        // More styling options can be set here
-    }
+    )
 
 
     private val player1PointsLabel = Label(
@@ -83,11 +77,9 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
                     rootService.playerActionService.useDrawPile(game.player2)
                 }
             }
-            //println(rootService.currentGame?.drawPile?.size)
-            //println(rootService.currentGame?.storagePile?.size)
-            //println(rootService.currentGame?.storagePile?.peek().toString())
         }
     }
+
     private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile")
 
     // Pass Button
@@ -100,22 +92,13 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         visual = ImageVisual("PassButton.png")
         onMouseClicked = {
             // Handle pass action
-            handlePassAction()
+            refreshAfterPass(currentPlayer())
         }
     }
 
-
-
-
-    /**
-     * structure to hold pairs of (card, cardView) that can be used
-     *
-     * 1. to find the corresponding view for a card passed on by a refresh method (forward lookup)
-     *
-     * 2. to find the corresponding card to pass to a service method on the occurrence of
-     * ui events on views (backward lookup).
-     */
     private val cardMap: BidirectionalMap<Card, CardView> = BidirectionalMap()
+
+    private var selectedCards: MutableList<CardView> = mutableListOf()
 
 
 
@@ -123,6 +106,15 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         background = ColorVisual(57, 70, 59)
 
+        // Customize labels if needed
+        player1NameLabel.apply {
+            font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+            // More styling options can be set here
+        }
+        player2NameLabel.apply {
+            font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+            // More styling options can be set here
+        }
 
         // Add the player name labels to the scene
         addComponents(
@@ -136,24 +128,13 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         )
     }
 
-    private fun handlePassAction() {
+
+
+    private fun currentPlayer(): Player{
         val game = rootService.currentGame
-        checkNotNull(game) { "No game found." }
-
-        // Implement the logic for passing the turn
-        // For example, toggle the player's turn and update the game state
-        game.passCounter++
-
-        if(game.passCounter == 2){
-            rootService.gameService.endGame()
-        }
-
-        game.playerOnesTurn = !game.playerOnesTurn
-        highlightCurrentPlayer()
-
-        // You might also want to update other parts of the UI or game state as needed
+        checkNotNull(game)
+        return if(game.playerOnesTurn) game.player1 else game.player2
     }
-
     private fun updatePlayerPoints() {
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
@@ -162,6 +143,9 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         player1PointsLabel.text = "${game.player1.score}"
         player2PointsLabel.text = "${game.player2.score}"
     }
+
+
+
 
     private fun highlightCurrentPlayer() {
         val game = rootService.currentGame
@@ -180,34 +164,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             // Optionally add a border or other visual indicator here
         }
     }
-
-
-    override fun refreshAfterStartNewGame() {
-
-        val game = rootService.currentGame
-        checkNotNull(game) { "No started game found." }
-
-        player1NameLabel.text = game.player1.name
-        player2NameLabel.text = game.player2.name
-        highlightCurrentPlayer()
-
-        // Initialize points labels with zero points
-        player1PointsLabel.text = "0"
-        player2PointsLabel.text = "0"
-
-        cardMap.clear()
-        val cardImageLoader = CardImageLoader()
-
-
-        initializeStackView(game.drawPile, drawPile, cardImageLoader)
-        initializeStackView(game.storagePile, reservePile, cardImageLoader)
-
-
-        val pyramidCards = game.pyramid.flatten()
-        initializePyramid(pyramidCards)
-
-    }
-
     private fun initializePyramid(pyramidCards: List<Card>) {
         val cardWidth = 100
         val cardHeight = 150
@@ -255,9 +211,84 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             currentY += (cardHeight - vOverlap)
         }
     }
+    private fun clearPyramidLayout() {
+        for (row in pyramidLayout) {
+            for (cardView in row) {
+                removeComponents(cardView)
+            }
+        }
+        pyramidLayout.clear()
+    }
+    private fun isEdgeCard(cardView: CardView): Boolean {
+        for (row in pyramidLayout) {
+            if (row.contains(cardView)) {
+                // Check if the card is the first or the last in its row
+                return row.indexOf(cardView) == 0 || row.indexOf(cardView) == row.size - 1
+            }
+        }
+        return false
+    }
+    private fun isCardOnReservePile(card: CardView): Boolean {
+        val game = rootService.currentGame ?: return false
+
+        // Check if the reserve pile is not empty and the top card matches the given card
+        return game.storagePile.isNotEmpty() && cardMap.forward(game.storagePile.peek()) == card
+    }
 
 
 
+
+    private fun toggleCardSelection(cardView: CardView) {
+
+        val game = rootService.currentGame
+        checkNotNull(game)
+
+        // Check if the card is already selected
+        if (selectedCards.contains(cardView)) {
+
+            // Deselect the card
+            cardView.posY += 30 // Adjust this value to change the elevation effect
+            selectedCards.remove(cardView)
+
+        } else if(selectedCards.size == 0) {
+
+            cardView.posY -= 30 // Adjust this value to change the elevation effect
+            selectedCards.add(cardView)
+
+        } else if (selectedCards.size == 1) {
+
+            cardView.posY -= 30 // Adjust this value to change the elevation effect
+            selectedCards.add(cardView)
+
+            //if((isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1]))           ||
+            //  ((isEdgeCard(selectedCards[0]) && isCardOnReservePile(selectedCards[1]))) ||
+            //  ((isEdgeCard(selectedCards[1]) && isCardOnReservePile(selectedCards[0])))) {
+            //
+            //    val list = listOf(cardMap.backward(selectedCards[0]), cardMap.backward(selectedCards[1]))
+            //
+            //    refreshAfterRemovePair(currentPlayer(), list)
+            //}
+
+        } else if (selectedCards.size == 2) {
+
+            selectedCards.forEach{card -> card.posY += 30 }
+            selectedCards.clear()
+        }
+
+    }
+    private fun initializeStackView(stack: Stack<Card>, stackView: LabeledStackView, cardImageLoader: CardImageLoader){
+        stackView.clear()
+        stack.peekAll().forEach(){ card ->
+            val cardView = CardView(
+                height = 200 / 6 * 5,
+                width = 130 / 6 * 5,
+                front = ImageVisual(cardImageLoader.frontImageFor(card.suit, card.value)),
+                back = ImageVisual(cardImageLoader.backImage)
+            )
+            stackView.add(cardView)
+            cardMap.add(card to cardView)
+        }
+    }
     private fun initializeCardView(card: Card, isEdgeCard: Boolean): CardView {
         val cardImageLoader = CardImageLoader()
 
@@ -275,31 +306,78 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             cardView.showBack()
         }
 
-        // Event handling for when a card is clicked
+        cardView.onMouseClicked = {
+            toggleCardSelection(cardView)
+            println(card.toString())
+        }
+
         return cardView
     }
 
 
-    private fun initializeStackView(stack: Stack<Card>, stackView: LabeledStackView, cardImageLoader: CardImageLoader){
-        stackView.clear()
-        stack.peekAll().forEach(){ card ->
-            val cardView = CardView(
-                height = 200 / 6 * 5,
-                width = 130 / 6 * 5,
-                front = ImageVisual(cardImageLoader.frontImageFor(card.suit, card.value)),
-                back = ImageVisual(cardImageLoader.backImage)
-            )
-            stackView.add(cardView)
-            cardMap.add(card to cardView)
-        }
+    override fun refreshAfterStartNewGame() {
+
+        val game = rootService.currentGame
+        checkNotNull(game) { "No started game found." }
+
+        selectedCards.clear()
+        // Clear existing pyramid layout
+        clearPyramidLayout()
+
+        player1NameLabel.text = game.player1.name
+        player2NameLabel.text = game.player2.name
+        highlightCurrentPlayer()
+
+        // Initialize points labels with zero points
+        player1PointsLabel.text = "0"
+        player2PointsLabel.text = "0"
+
+        selectedCards.clear()
+        // Clear existing pyramid layout
+        clearPyramidLayout()
+        cardMap.clear()
+        val cardImageLoader = CardImageLoader()
+
+
+        initializeStackView(game.drawPile, drawPile, cardImageLoader)
+        initializeStackView(game.storagePile, reservePile, cardImageLoader)
+
+
+        val pyramidCards = game.pyramid.flatten()
+        initializePyramid(pyramidCards)
     }
+    override fun refreshAfterRemovePair(player: Player, removedCards: List<Card>){
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game found." }
 
+        val card1 = removedCards[0]
+        val card2 = removedCards[1]
 
-    override fun refreshAfterPass(player: Player) = handlePassAction()
-    override fun refreshAfterRevealCard(player: Player, revealedCard: Card) = refreshAfterDrawCard(player)
+        rootService.playerActionService.selectPair(player, card1, card2)
+        updatePlayerPoints()
 
+        game.playerOnesTurn = !game.playerOnesTurn
+        highlightCurrentPlayer()
 
-    private fun refreshAfterDrawCard(player: Player){
+    }
+    override fun refreshAfterPass(player: Player) {
+        val game = rootService.currentGame
+        checkNotNull(game) { "No game found." }
+
+        // Implement the logic for passing the turn
+        // For example, toggle the player's turn and update the game state
+        game.passCounter++
+
+        if(game.passCounter == 2){
+            rootService.gameService.endGame()
+        }
+
+        game.playerOnesTurn = !game.playerOnesTurn
+        highlightCurrentPlayer()
+
+        // You might also want to update other parts of the UI or game state as needed
+    }
+    override fun refreshAfterRevealCard(player: Player, revealedCard: Card) {
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
 
@@ -313,8 +391,9 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             drawPile.clear()
             drawPile.onMouseClicked = null
         }
-
     }
+
+
 
     /**
      * moves a [cardView] from current container on top of [toStack].
@@ -333,11 +412,4 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         toStack.add(cardView)
     }
 
-    private fun checkGameStatus(){
-        val game = rootService.currentGame
-        checkNotNull(game) { "No game found." }
-    }
-
-
 }
-
