@@ -2,9 +2,9 @@ package view
 
 import entity.Card
 import entity.Player
-import javafx.application.Platform
 import service.CardImageLoader
 import service.RootService
+import tools.aqua.bgw.animation.DelayAnimation
 import tools.aqua.bgw.components.gamecomponentviews.CardView
 import tools.aqua.bgw.components.uicomponents.Button
 import tools.aqua.bgw.components.uicomponents.Label
@@ -15,6 +15,7 @@ import tools.aqua.bgw.util.Stack
 import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 import java.awt.Color
+import java.time.Duration
 import java.util.*
 
 class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1920, 1240), Refreshable {
@@ -271,30 +272,29 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             cardView.posY -= 30 // Adjust this value to change the elevation effect
             selectedCards.add(cardView)
 
-            val timer = Timer()
-            timer.schedule(object : TimerTask() {
-                override fun run() {
-                    val card1 = cardMap.backward(selectedCards[0])
-                    val card2 = cardMap.backward(selectedCards[1])
+            val card1 = cardMap.backward(selectedCards[0])
+            val card2 = cardMap.backward(selectedCards[1])
 
-                    runOnUiThread {
-                        if (rootService.gameService.checkPair(card1, card2) && isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1])) {
-                            rootService.playerActionService.selectPair(currentPlayer(), card1, card2)
-                            highlightCurrentPlayer()
-                        } else {
-                            selectedCards.forEach { card -> card.posY += 30 }
-                            selectedCards.clear()
-                        }
+
+            this.lock()
+            this.playAnimation(DelayAnimation(duration = 500).apply{
+                onFinished = {
+
+                    //--------------------------------------------
+                    if (rootService.gameService.checkPair(card1, card2) && isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1])) {
+                        rootService.playerActionService.selectPair(currentPlayer(), card1, card2)
+                        highlightCurrentPlayer()
+                    } else {
+                        selectedCards.forEach { card -> card.posY += 30 }
+                        selectedCards.clear()
                     }
+                    //--------------------------------------------
+
+                    this@PyramidGameScene.unlock()
                 }
-            }, 600) // Delay in milliseconds
+            })
         }
     }
-    private fun runOnUiThread(task: () -> Unit) {
-        Platform.runLater(task)
-    }
-
-
 
 
     private fun initializeStackView(stack: Stack<Card>, stackView: LabeledStackView, cardImageLoader: CardImageLoader){
