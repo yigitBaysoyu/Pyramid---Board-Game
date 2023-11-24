@@ -22,6 +22,7 @@ application {
 dependencies {
     testImplementation(kotlin("test-junit5"))
     implementation(group = "tools.aqua", name = "bgw-gui", version = "0.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 tasks.distZip {
