@@ -369,7 +369,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
     override fun refreshAfterRemovePair(player: Player, removedCards: List<Card>){
         val game = rootService.currentGame
-        checkNotNull(game) { "No game found." }
+        checkNotNull(game) {}
 
         if(rootService.gameService.checkPair( removedCards[0], removedCards[1])){
 
