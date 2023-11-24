@@ -2,6 +2,7 @@ package view
 
 import entity.Card
 import entity.Player
+import javafx.application.Platform
 import service.CardImageLoader
 import service.RootService
 import tools.aqua.bgw.components.gamecomponentviews.CardView
@@ -14,6 +15,7 @@ import tools.aqua.bgw.util.Stack
 import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 import java.awt.Color
+import java.util.*
 
 class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1920, 1240), Refreshable {
 
@@ -33,7 +35,10 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         width = labelWidth,
         height = labelHeight,
         text = "Player 1"
-    )
+    ).apply {
+        font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+        // More styling options can be set here
+    }
 
     private val player2NameLabel = Label(
         posX = 1920 - labelWidth - sideMargin, // X position from the right edge
@@ -41,7 +46,9 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         width = labelWidth,
         height = labelHeight,
         text = "Player 2"
-    )
+    ).apply {
+        font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+    }
 
 
     private val player1PointsLabel = Label(
@@ -51,7 +58,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         height = pointsLabelHeight,
         text = "0"
     ).apply {
-        font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD)
+        font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
     }
 
     private val player2PointsLabel = Label(
@@ -61,7 +68,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         height = pointsLabelHeight,
         text = "0"
     ).apply {
-        font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD)
+        font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
     }
 
 
@@ -79,7 +86,13 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
     }
 
-    private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile")
+    private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile").apply {
+        onMouseClicked = {
+            rootService.currentGame?.let { game ->
+                val topCardView = cardMap.forward(game.storagePile.peek())
+            }
+        }
+    }
 
     // Pass Button
     private val passButton = Button(
@@ -108,17 +121,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         background = ColorVisual(57, 70, 59)
 
-        // Customize labels if needed
-        player1NameLabel.apply {
-            font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-            // More styling options can be set here
-        }
-        player2NameLabel.apply {
-            font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-            // More styling options can be set here
-        }
-
-        // Add the player name labels to the scene
         addComponents(
             drawPile,
             reservePile,
@@ -215,8 +217,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
 
 
-
-
     private fun isEdgeCard(cardView: CardView): Boolean {
         for (row in pyramidLayout) {
             if (row.contains(cardView)) {
@@ -226,12 +226,26 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
         return false
     }
+    private fun flipNewEdgeCards() {
+        for (row in pyramidLayout) {
+            for (cardView in row) {
+                if (isEdgeCard(cardView)) {
+                    cardView.showFront() // Flip the card to show the front
+                    // Make the card selectable if needed
+                    cardView.onMouseClicked = {
+                        handleCardSelection(cardView)
+                    }
+                }
+            }
+        }
+    }
     private fun isCardOnReservePile(card: CardView): Boolean {
         val game = rootService.currentGame ?: return false
 
         // Check if the reserve pile is not empty and the top card matches the given card
         return game.storagePile.isNotEmpty() && cardMap.forward(game.storagePile.peek()) == card
     }
+
 
 
 
@@ -254,28 +268,34 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             selectedCards.add(cardView)
 
         } else if (selectedCards.size == 1) {
-
             cardView.posY -= 30 // Adjust this value to change the elevation effect
             selectedCards.add(cardView)
 
-            val card1 = cardMap.backward(selectedCards[0])
-            val card2 = cardMap.backward(selectedCards[1])
+            val timer = Timer()
+            timer.schedule(object : TimerTask() {
+                override fun run() {
+                    val card1 = cardMap.backward(selectedCards[0])
+                    val card2 = cardMap.backward(selectedCards[1])
 
-            if(rootService.gameService.checkPair(card1, card2) && isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1])){
-                rootService.playerActionService.selectPair(currentPlayer(), card1, card2)
-
-            }
-
-
-        } else if (selectedCards.size == 2) {
-
-            selectedCards.forEach{card -> card.posY += 30 }
-            selectedCards.clear()
-            cardView.posY -= 30 // Adjust this value to change the elevation effect
-            selectedCards.add(cardView)
+                    runOnUiThread {
+                        if (rootService.gameService.checkPair(card1, card2) && isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1])) {
+                            rootService.playerActionService.selectPair(currentPlayer(), card1, card2)
+                            highlightCurrentPlayer()
+                        } else {
+                            selectedCards.forEach { card -> card.posY += 30 }
+                            selectedCards.clear()
+                        }
+                    }
+                }
+            }, 600) // Delay in milliseconds
         }
-
     }
+    private fun runOnUiThread(task: () -> Unit) {
+        Platform.runLater(task)
+    }
+
+
+
 
     private fun initializeStackView(stack: Stack<Card>, stackView: LabeledStackView, cardImageLoader: CardImageLoader){
         stackView.clear()
@@ -355,15 +375,21 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
             removeComponents(selectedCards.first())
             removeComponents(selectedCards.last())
+
+            for(row in pyramidLayout){
+                row.remove(selectedCards.first())
+                row.remove(selectedCards.last())
+            }
+
             selectedCards.clear()
 
+            flipNewEdgeCards()
         }
         else {
             selectedCards.clear()
         }
 
         updatePlayerPoints()
-        rootService.gameService.switchPlayer()
         highlightCurrentPlayer()
 
     }
@@ -418,5 +444,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         cardView.removeFromParent()
         toStack.add(cardView)
     }
+
 
 }
