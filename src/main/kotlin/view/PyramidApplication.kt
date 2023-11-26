@@ -14,8 +14,6 @@ class PyramidApplication : BoardGameApplication("Pyramid Game"), Refreshable {
     // also holds the currently active game
     private val rootService = RootService()
 
-    // Scenes
-
     // This is where the actual game takes place
     private val gameScene = PyramidGameScene(rootService)
 
