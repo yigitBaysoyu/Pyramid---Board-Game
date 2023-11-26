@@ -10,7 +10,9 @@ data class Card(val suit: CardSuit, val value: CardValue, var flipped: Boolean =
         return "$suit$value"
     }
 
-    // Function to get the integer value of the card
+    /**
+     * Function to get the integer value of the card
+     */
     fun getIntValue(aceValue: Int = 1): Int {
         return when (value) {
             CardValue.TWO -> 2
