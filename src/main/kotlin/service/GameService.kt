@@ -27,8 +27,6 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
 
         val pyramidDeck = Stack(standardDeck.popAll(28))
         game.drawPile = standardDeck
-        println("Deck size after popping for pyramid: ${standardDeck.size}")
-
 
         rootService.currentGame = game
 
@@ -154,11 +152,11 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         val game = rootService.currentGame
         checkNotNull(game) { "No game currently running."}
 
-        game.pyramid.forEach { level ->
-            if (level.remove(card1)) {
+        for(level in game.pyramid){
+            if(level.remove(card1)){
                 game.collectedStoragePile.push(card1)
             }
-            if (level.remove(card2)) {
+            if(level.remove(card2)){
                 game.collectedStoragePile.push(card2)
             }
         }
@@ -167,36 +165,18 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         with(game.storagePile) {
             if (isNotEmpty()) {
                 if (peek() == card1 || peek() == card2) {
+                    println("Removed from reserve pile: ${game.storagePile.peek().toString()}")
                     game.collectedStoragePile.push(pop())
                 }
             }
         }
 
-        rootService.currentGame = game
-        flipAdjacentCards()
+        println("Remaining Cards: ${game.pyramid.flatten().size}")
+        println(game.pyramid.flatten())
+
     }
 
-    private fun flipAdjacentCards() {
-        val game = rootService.currentGame ?: return
 
-        for (levelIndex in game.pyramid.indices) {
-            for (cardIndex in game.pyramid[levelIndex].indices) {
-                val card = game.pyramid[levelIndex][cardIndex]
-                if (!card.flipped && isOuterCard(levelIndex, cardIndex)) {
-                    game.pyramid[levelIndex][cardIndex] = card.copy(flipped = true)
-                }
-            }
-        }
-        rootService.currentGame = game
-    }
-
-    private fun isOuterCard(levelIndex: Int, cardIndex: Int): Boolean {
-        val game = rootService.currentGame ?: return false
-        val level = game.pyramid[levelIndex]
-
-        // Check if it's the first or last card in the level
-        return cardIndex == 0 || cardIndex == level.size - 1
-    }
 
     /**
      * Adds the score for a collected pair to the game's score.

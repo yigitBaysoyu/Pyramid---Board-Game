@@ -43,10 +43,6 @@ class PyramidApplication : BoardGameApplication("Pyramid Game"), Refreshable {
             newGameMenuScene
         )
 
-        // This is just done so that the blurred background when showing
-        // the new game menu has content and looks nicer
-        rootService.gameService.startNewGame("Bob", "Alice")
-
         this.showGameScene(gameScene)
         this.showMenuScene(newGameMenuScene, 0)
 

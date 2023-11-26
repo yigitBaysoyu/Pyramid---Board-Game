@@ -15,8 +15,6 @@ import tools.aqua.bgw.util.Stack
 import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 import java.awt.Color
-import java.time.Duration
-import java.util.*
 
 class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1920, 1240), Refreshable {
 
@@ -38,7 +36,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         text = "Player 1"
     ).apply {
         font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-        // More styling options can be set here
     }
 
     private val player2NameLabel = Label(
@@ -76,6 +73,17 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
     private val drawPile = LabeledStackView(posX = 270, posY = 500, "Draw Pile").apply {
         onMouseClicked = {
+
+            if(selectedCards.isNotEmpty()){
+                selectedCards[0].posY += 30
+            }
+
+            selectedCards.clear()
+
+            if(reservePile.isNotEmpty()){
+                moveCardView(reservePile.peek(), reservePile)
+            }
+
             rootService.currentGame?.let { game ->
                 // Determine which player's turn it is and perform the action
                 if (game.playerOnesTurn) {
@@ -84,16 +92,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
                     rootService.playerActionService.useDrawPile(game.player2)
                 }
             }
+
         }
     }
 
-    private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile").apply {
-        onMouseClicked = {
-            rootService.currentGame?.let { game ->
-                val topCardView = cardMap.forward(game.storagePile.peek())
-            }
-        }
-    }
+    private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile")
 
     // Pass Button
     private val passButton = Button(
@@ -104,10 +107,10 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     ).apply {
         visual = ImageVisual("PassButton.png")
         onMouseClicked = {
-            // Handle pass action
             refreshAfterPass(currentPlayer())
         }
     }
+
     private val pyramidLayout: MutableList<MutableList<CardView>> = mutableListOf()
 
     private val cardMap: BidirectionalMap<Card, CardView> = BidirectionalMap()
@@ -119,7 +122,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
 
     init {
-
         background = ColorVisual(57, 70, 59)
 
         addComponents(
@@ -161,10 +163,8 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         // Highlight the label of the current player
         if (game.playerOnesTurn) {
             player1NameLabel.font = Font(size = 67, color = Color(208, 0, 0), fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-            // Optionally add a border or other visual indicator here
         } else {
             player2NameLabel.font = Font(size = 67, color = Color(208, 0, 0), fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-            // Optionally add a border or other visual indicator here
         }
     }
 
@@ -204,9 +204,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
             pyramidLayout.add(rowCards)
             currentY += (cardHeight - vOverlap)
-        }
-    }
 
+        }
+        println("Pyramid has been initialised. Current Cards: ${rootService.currentGame?.pyramid?.flatten()?.size}")
+        println(rootService.currentGame?.pyramid?.flatten())
+    }
     private fun clearPyramidLayout() {
         for (row in pyramidLayout) {
             for (cardView in row) {
@@ -231,8 +233,8 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         for (row in pyramidLayout) {
             for (cardView in row) {
                 if (isEdgeCard(cardView)) {
-                    cardView.showFront() // Flip the card to show the front
-                    // Make the card selectable if needed
+                    cardView.showFront()
+                    cardMap.backward(cardView).flipped = true
                     cardView.onMouseClicked = {
                         handleCardSelection(cardView)
                     }
@@ -240,16 +242,14 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             }
         }
     }
+
     private fun isCardOnReservePile(card: CardView): Boolean {
-        val game = rootService.currentGame ?: return false
+        val game = rootService.currentGame
+        checkNotNull(game)
 
         // Check if the reserve pile is not empty and the top card matches the given card
         return game.storagePile.isNotEmpty() && cardMap.forward(game.storagePile.peek()) == card
     }
-
-
-
-
 
     private fun handleCardSelection(cardView: CardView) {
 
@@ -260,7 +260,12 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         if (selectedCards.contains(cardView)) {
 
             // Deselect the card
-            cardView.posY += 30 // Adjust this value to change the elevation effect
+            if(reservePile.isNotEmpty() && reservePile.peek() == cardView){
+                moveCardView(reservePile.peek(), reservePile)
+            } else {
+                cardView.posY += 30
+            }
+
             selectedCards.remove(cardView)
 
         } else if(selectedCards.size == 0) {
@@ -275,24 +280,39 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             val card1 = cardMap.backward(selectedCards[0])
             val card2 = cardMap.backward(selectedCards[1])
 
-
-            this.lock()
-            this.playAnimation(DelayAnimation(duration = 500).apply{
+            // Delay time for the card animation
+            this@PyramidGameScene.lock()
+            this@PyramidGameScene.playAnimation(DelayAnimation(duration = 500).apply{
                 onFinished = {
 
                     //--------------------------------------------
-                    if (rootService.gameService.checkPair(card1, card2) && isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1])) {
+                    if (rootService.gameService.checkPair(card1, card2) &&
+                       (isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1]) ||
+                       (isEdgeCard(selectedCards[0]) && isCardOnReservePile(selectedCards[1])) ||
+                       (isEdgeCard(selectedCards[1]) && isCardOnReservePile(selectedCards[0])))) {
+
+                        println("Removed Cards: ${card1.toString()} , ${card2.toString()}")
+
                         rootService.playerActionService.selectPair(currentPlayer(), card1, card2)
                         highlightCurrentPlayer()
+
                     } else {
-                        selectedCards.forEach { card -> card.posY += 30 }
+
+                        if(reservePile.isNotEmpty()){
+                            selectedCards.forEach { card ->
+                                if(card == reservePile.peek()) moveCardView(reservePile.peek(), reservePile)
+                                else card.posY += 30
+                            }
+                        } else {
+                            selectedCards.forEach { card -> card.posY += 30 }
+                        }
+                        println("Invalid Move")
                         selectedCards.clear()
                     }
                     //--------------------------------------------
 
                     this@PyramidGameScene.unlock()
-                }
-            })
+                } })
         }
     }
 
@@ -301,8 +321,8 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         stackView.clear()
         stack.peekAll().forEach(){ card ->
             val cardView = CardView(
-                height = 200 / 6 * 5,
-                width = 130 / 6 * 5,
+                height = 165,
+                width = 110,
                 front = ImageVisual(cardImageLoader.frontImageFor(card.suit, card.value)),
                 back = ImageVisual(cardImageLoader.backImage)
             )
@@ -314,8 +334,8 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         val cardImageLoader = CardImageLoader()
 
         val cardView = CardView(
-            width = 100,
             height = 150,
+            width = 100,
             front = ImageVisual(cardImageLoader.frontImageFor(card.suit, card.value)),
             back = ImageVisual(cardImageLoader.backImage)
         )
@@ -329,11 +349,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         cardView.onMouseClicked = {
             handleCardSelection(cardView)
-            println(card.toString())
         }
 
         return cardView
     }
+
 
 
     override fun refreshAfterStartNewGame() {
@@ -341,9 +361,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         val game = rootService.currentGame
         checkNotNull(game) { "No started game found." }
 
-        selectedCards.clear()
-        // Clear existing pyramid layout
-        clearPyramidLayout()
 
         player1NameLabel.text = game.player1.name
         player2NameLabel.text = game.player2.name
@@ -353,9 +370,8 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         player1PointsLabel.text = "0"
         player2PointsLabel.text = "0"
 
-        selectedCards.clear()
-        // Clear existing pyramid layout
         clearPyramidLayout()
+        selectedCards.clear()
         cardMap.clear()
         val cardImageLoader = CardImageLoader()
 
@@ -369,17 +385,24 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
     override fun refreshAfterRemovePair(player: Player, removedCards: List<Card>){
         val game = rootService.currentGame
-        checkNotNull(game) {}
+        checkNotNull(game)
 
         if(rootService.gameService.checkPair( removedCards[0], removedCards[1])){
 
-            removeComponents(selectedCards.first())
-            removeComponents(selectedCards.last())
+            selectedCards.forEach(){ card ->
+                if(reservePile.isNotEmpty() && card == reservePile.peek()){
+                    reservePile.pop()
+                } else removeComponents(card)
+            }
+
+
 
             for(row in pyramidLayout){
                 row.remove(selectedCards.first())
                 row.remove(selectedCards.last())
             }
+
+
 
             selectedCards.clear()
 
@@ -391,6 +414,10 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         updatePlayerPoints()
         highlightCurrentPlayer()
+
+
+
+        if(game.pyramid.flatten().isEmpty()) rootService.gameService.endGame()
 
     }
     override fun refreshAfterPass(player: Player) {
@@ -420,12 +447,22 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             game.player1 -> moveCardView(cardMap.forward(game.storagePile.peek()),reservePile, true)
             game.player2 -> moveCardView(cardMap.forward(game.storagePile.peek()),reservePile, true)
         }
+
+
+
+        if(reservePile.isNotEmpty()){
+            reservePile.peek().apply {
+                onMouseClicked = {
+                    handleCardSelection(reservePile.peek())
+                }
+            }
+        }
+
         if(game.drawPile.isEmpty()){
             drawPile.clear()
             drawPile.onMouseClicked = null
         }
     }
-
 
 
     /**

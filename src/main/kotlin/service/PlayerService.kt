@@ -63,6 +63,8 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
          rootService.currentGame = game
          GameService(rootService).switchPlayer()
          onAllRefreshables { refreshAfterRevealCard(player, removedCard) }
+
+         println("Draw pile was used. Revealed Card: $removedCard")
       }
    }
 
