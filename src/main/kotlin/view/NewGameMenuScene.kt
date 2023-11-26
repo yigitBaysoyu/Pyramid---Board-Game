@@ -8,17 +8,30 @@ import tools.aqua.bgw.core.MenuScene
 import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 
+/**
+ * Represents the menu scene for initiating a new game in the Pyramid card game application.
+ * This scene provides the interface for entering player names and starting a new game.
+ * It includes text fields for player names, a start button to begin the game, and a quit button.
+ *
+ * @property rootService Instance of RootService to interact with game service.
+ */
 class NewGameMenuScene(private val rootService: RootService) : MenuScene(width = 410 , height = 490, background = ImageVisual("NewGameArtwork.png")), Refreshable {
 
+    /**
+     * Adjustment values for positioning the player input text fields on the scene.
+     */
     val adjustInputPosX = 105
     val adjustInputPosY = -87
+
 
     val adjustButtonPosX = 100
     val adjustButtonPosY = 84
 
 
-    // type inference fails here, so explicit  ": TextField" is required
-    // see https://discuss.kotlinlang.org/t/unexpected-type-checking-recursive-problem/6203/14
+    /**
+     * Text field for entering the name of the first player. It is pre-populated with a random name
+     * and updates the start button's disabled state based on the text content.
+     */
     private val p1Input: TextField = TextField(
         width = 116,
         height = 24,
@@ -31,8 +44,10 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
         }
     }
 
-    // type inference fails here, so explicit  ": TextField" is required
-    // see https://discuss.kotlinlang.org/t/unexpected-type-checking-recursive-problem/6203/14
+    /**
+     * Text field for entering the name of the second player. It is pre-populated with a random name
+     * and updates the start button's disabled state based on the text content.
+     */
     private val p2Input: TextField = TextField(
         width = 116,
         height = 24,
@@ -46,6 +61,10 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
         }
     }
 
+    /**
+     * Button to initiate the game using the entered player names. Triggers the game start logic
+     * in the GameService when clicked.
+     */
     private val startButton = Button(
         width = 120,
         height = 50,
@@ -61,6 +80,10 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
         }
     }
 
+    /**
+     * Button to quit the game. Currently, it is only visually represented and does not have an
+     * associated action.
+     */
     val quitButton = Button(
         width = 125,
         height = 50,
@@ -70,6 +93,10 @@ class NewGameMenuScene(private val rootService: RootService) : MenuScene(width =
         visual = ImageVisual("QuitButton.png")
     }
 
+    /**
+     * Initializes the NewGameMenuScene by setting its opacity and adding all the necessary components,
+     * including the player input text fields and control buttons.
+     */
     init {
         opacity = 1.0
         addComponents(

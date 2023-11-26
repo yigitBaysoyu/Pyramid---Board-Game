@@ -16,18 +16,26 @@ import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 import java.awt.Color
 
+/**
+ * Represents the main game scene for the Pyramid card game. This class handles the visual representation
+ * and interaction of the game's components, such as the pyramid layout, draw and reserve piles, player labels,
+ * and score displays. It also manages user interactions with these components.
+ *
+ * @property rootService Instance of RootService for accessing and modifying game state and logic.
+ */
 class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1920, 1240), Refreshable {
 
-    //Player Names
+    /**
+     * Labels for displaying the names and points of the players. Positioned on the game scene
+     * with specific coordinates, width, height, and styling.
+     */
     private val labelWidth = 550
     private val labelHeight = 50
     private val sideMargin = 60 // Adjust this margin to move labels closer to or further from the sides
-
-    //Player Points
     private val pointsLabelWidth = 150
     private val pointsLabelHeight = 30
 
-
+    // Player labels and points
     private val player1NameLabel = Label(
         posX = sideMargin, // X position from the left edge
         posY = 50,
@@ -37,7 +45,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     ).apply {
         font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
     }
-
     private val player2NameLabel = Label(
         posX = 1920 - labelWidth - sideMargin, // X position from the right edge
         posY = 50,
@@ -47,8 +54,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     ).apply {
         font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
     }
-
-
     private val player1PointsLabel = Label(
         posX = player1NameLabel.posX + (labelWidth - pointsLabelWidth) / 2, // Center under the player name label
         posY = player1NameLabel.posY + labelHeight + 85, // Below the player name label
@@ -58,7 +63,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     ).apply {
         font = Font(size = 80, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
     }
-
     private val player2PointsLabel = Label(
         posX = player2NameLabel.posX + (labelWidth - pointsLabelWidth) / 2, // Center under the player name label
         posY = player2NameLabel.posY + labelHeight + 85, // Below the player name label
@@ -70,7 +74,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
 
 
-
+    // Draw and Reserve Piles
     private val drawPile = LabeledStackView(posX = 270, posY = 500, "Draw Pile").apply {
         onMouseClicked = {
 
@@ -95,7 +99,6 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         }
     }
-
     private val reservePile = LabeledStackView(posX = 1520, posY = 500, "Reserve Pile")
 
     // Pass Button
@@ -111,16 +114,17 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
     }
 
+    // Pyramid layout and card mapping
     private val pyramidLayout: MutableList<MutableList<CardView>> = mutableListOf()
-
     private val cardMap: BidirectionalMap<Card, CardView> = BidirectionalMap()
 
+    // Selected Cards Handling
     private var selectedCards: MutableList<CardView> = mutableListOf()
 
 
 
 
-
+    // Set background and add components
     init {
         background = ColorVisual(57, 70, 59)
 
@@ -138,12 +142,25 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
 
 
-
+    /**
+     * Determines the current player based on the game state. If it's player one's turn, returns player one;
+     * otherwise, returns player two.
+     *
+     * @return The current player.
+     * @throws IllegalStateException if the game is not currently running.
+     */
     private fun currentPlayer(): Player{
         val game = rootService.currentGame
         checkNotNull(game)
         return if(game.playerOnesTurn) game.player1 else game.player2
     }
+
+    /**
+     * Updates the points labels for both players. Retrieves the current scores from the game state and
+     * sets the text of the points labels accordingly.
+     *
+     * @throws IllegalStateException if the game is not currently running.
+     */
     private fun updatePlayerPoints() {
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
@@ -152,6 +169,13 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         player1PointsLabel.text = "${game.player1.score}"
         player2PointsLabel.text = "${game.player2.score}"
     }
+
+    /**
+     * Highlights the label of the current player by changing its font color. Resets the font color of the
+     * non-active player to the default.
+     *
+     * @throws IllegalStateException if the game is not currently running.
+     */
     private fun highlightCurrentPlayer() {
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
@@ -170,7 +194,12 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
 
 
-
+    /**
+     * Initializes the pyramid layout with card views. Arranges the cards in a pyramid shape according to
+     * the specified dimensions and positions. Edge cards are shown face up, while others are face down.
+     *
+     * @param pyramidCards The list of cards to be arranged in the pyramid.
+     */
     private fun initializePyramid(pyramidCards: List<Card>) {
         val cardWidth = 100
         val cardHeight = 150
@@ -209,6 +238,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         println("Pyramid has been initialised. Current Cards: ${rootService.currentGame?.pyramid?.flatten()?.size}")
         println(rootService.currentGame?.pyramid?.flatten())
     }
+
+    /**
+     * Clears the current pyramid layout by removing all card views from the scene and emptying the
+     * pyramid layout structure.
+     */
     private fun clearPyramidLayout() {
         for (row in pyramidLayout) {
             for (cardView in row) {
@@ -219,7 +253,13 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
 
 
-
+    /**
+     * Determines if a given card view is on the edge of the pyramid (i.e., has no adjacent cards on one
+     * side). This is used to decide if a card can be interacted with according to game rules.
+     *
+     * @param cardView The card view to check.
+     * @return True if the card view is an edge card, false otherwise.
+     */
     private fun isEdgeCard(cardView: CardView): Boolean {
         for (row in pyramidLayout) {
             if (row.contains(cardView)) {
@@ -229,6 +269,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
         return false
     }
+
+    /**
+     * Flips newly exposed edge cards to face up and sets their onClick event. This occurs typically after
+     * cards have been removed from the pyramid.
+     */
     private fun flipNewEdgeCards() {
         for (row in pyramidLayout) {
             for (cardView in row) {
@@ -243,6 +288,13 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
     }
 
+    /**
+     * Checks if the given card view corresponds to the top card of the reserve pile.
+     *
+     * @param cardView The card view to check.
+     * @return True if the card view matches the top card of the reserve pile, false otherwise.
+     * @throws IllegalStateException if the game is not currently running.
+     */
     private fun isCardOnReservePile(card: CardView): Boolean {
         val game = rootService.currentGame
         checkNotNull(game)
@@ -251,6 +303,14 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         return game.storagePile.isNotEmpty() && cardMap.forward(game.storagePile.peek()) == card
     }
 
+    /**
+     * Handles the selection and deselection of cards by the player. Manages the logic for determining if
+     * selected cards form a valid pair and processes their removal if they do. Also handles the card
+     * elevation effect for visual feedback.
+     *
+     * @param cardView The card view being selected or deselected.
+     * @throws IllegalStateException if the game is not currently running.
+     */
     private fun handleCardSelection(cardView: CardView) {
 
         val game = rootService.currentGame
@@ -316,7 +376,14 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
     }
 
-
+    /**
+     * Initializes a stack view with card views based on a given stack of cards. Each card in the stack
+     * is represented by a card view in the stack view, and the mappings are added to the global card map.
+     *
+     * @param stack The stack of cards to be represented.
+     * @param stackView The stack view to be initialized.
+     * @param cardImageLoader The loader used to fetch card images.
+     */
     private fun initializeStackView(stack: Stack<Card>, stackView: LabeledStackView, cardImageLoader: CardImageLoader){
         stackView.clear()
         stack.peekAll().forEach(){ card ->
@@ -330,6 +397,15 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
             cardMap.add(card to cardView)
         }
     }
+
+    /**
+     * Creates and initializes a card view for a given card. Sets the front and back visuals based on the
+     * card details. Edge cards are shown face up, while others are face down.
+     *
+     * @param card The card to create a view for.
+     * @param isEdgeCard Indicates whether the card is an edge card.
+     * @return The initialized card view.
+     */
     private fun initializeCardView(card: Card, isEdgeCard: Boolean): CardView {
         val cardImageLoader = CardImageLoader()
 
@@ -355,7 +431,10 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
 
 
-
+    /**
+     * Refreshes the GUI after starting a new game. It initializes the card views for the draw and reserve
+     * piles, sets player names, resets points, and prepares the pyramid layout.
+     */
     override fun refreshAfterStartNewGame() {
 
         val game = rootService.currentGame
@@ -383,6 +462,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         val pyramidCards = game.pyramid.flatten()
         initializePyramid(pyramidCards)
     }
+
+    /**
+     * Refreshes the GUI after a pair of cards is removed. It updates the pyramid layout, player points,
+     * and checks if the game has ended.
+     */
     override fun refreshAfterRemovePair(player: Player, removedCards: List<Card>){
         val game = rootService.currentGame
         checkNotNull(game)
@@ -420,6 +504,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         if(game.pyramid.flatten().isEmpty()) rootService.gameService.endGame()
 
     }
+
+    /**
+     * Refreshes the GUI after a player passes their turn. It updates the game state, including the current
+     * player's turn and checks if the game should end.
+     */
     override fun refreshAfterPass(player: Player) {
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
@@ -437,6 +526,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         // You might also want to update other parts of the UI or game state as needed
     }
+
+    /**
+     * Refreshes the GUI after a card is revealed. It updates the reserve pile and draw pile views,
+     * and handles the UI changes for the revealed card.
+     */
     override fun refreshAfterRevealCard(player: Player, revealedCard: Card) {
         val game = rootService.currentGame
         checkNotNull(game) { "No game found." }
@@ -464,12 +558,11 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         }
     }
 
-
     /**
-     * moves a [cardView] from current container on top of [toStack].
+     * Moves a [cardView] from its current container to [toStack]. If [flip] is true, the card view is
+     * flipped from front to back or vice versa.
      *
-     * @param flip if true, the view will be flipped from [CardView.CardSide.FRONT] to
-     * [CardView.CardSide.BACK] and vice versa.
+     * @param flip If true, flips the card view.
      */
     private fun moveCardView(cardView: CardView, toStack: LabeledStackView, flip: Boolean = false) {
         if (flip) {

@@ -35,6 +35,12 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         onAllRefreshables { refreshAfterStartNewGame() }
     }
 
+    /**
+     * Creates a standard deck of 52 playing cards. This deck includes all suits and values
+     * found in a typical deck of cards.
+     *
+     * @return A Stack<Card> representing the shuffled deck of cards.
+     */
     private fun createStandardDeck() : Stack<Card>{
 
         val deck = Stack<Card>()

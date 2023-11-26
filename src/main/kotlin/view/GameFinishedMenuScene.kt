@@ -9,6 +9,11 @@ import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 import java.awt.Color
 
+/**
+ * This scene is displayed at the end of the Pyramid card game. It shows the results of the game, including
+ * the names and scores of both players, and the game outcome (winner, loser, or draw). Players can choose
+ * to start a new game or quit from this scene.
+ */
 class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(width = 410 , height = 490, background = ImageVisual("GameOverArtwork.png")), Refreshable {
 
     private val labelWidth = 125
@@ -121,6 +126,12 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
             quitButton)
     }
 
+    /**
+     * Determines the game result and displays the appropriate label based on the final scores of the players.
+     * Adds the winner or draw label to the scene.
+     *
+     * @throws IllegalStateException if no game is currently running.
+     */
     private fun gameResult(){
         val game = rootService.currentGame
         checkNotNull(game) { "No game running" }
@@ -138,7 +149,21 @@ class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(w
 
     }
 
+    /**
+     * Refreshes the scene after the game ends. It updates the player names and scores, and displays the
+     * game result (winner, loser, or draw). It also manages the removal and addition of result labels
+     * based on the game outcome.
+     *
+     * @throws IllegalStateException if no game is currently running.
+     */
     override fun refreshAfterGameEnd() {
+
+        removeComponents(
+            gameResultP1,
+            gameResultP2,
+            gameResultD
+        )
+
         val game = rootService.currentGame
         checkNotNull(game) { "No game running" }
 

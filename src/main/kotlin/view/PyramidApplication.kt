@@ -3,6 +3,11 @@ package view
 import service.RootService
 import tools.aqua.bgw.core.BoardGameApplication
 
+/**
+ * This is the main scene for the Pyramid card game. The scene displays the entire game layout,
+ * including the pyramid of cards, draw and reserve piles, and player information.
+ * Player interactions like card selection, drawing from piles, and passing turns are managed here.
+ */
 class PyramidApplication : BoardGameApplication("Pyramid Game"), Refreshable {
 
     // Central service from which all others are created/accessed
@@ -23,12 +28,12 @@ class PyramidApplication : BoardGameApplication("Pyramid Game"), Refreshable {
     }
 
     private val gameFinishedMenuScene = GameFinishedMenuScene(rootService).apply {
-        quitButton.onMouseClicked = {
-            exit()
-        }
-
         newGameButton.onMouseClicked = {
             showMenuScene(newGameMenuScene, 0)
+        }
+
+        quitButton.onMouseClicked = {
+            exit()
         }
     }
 
