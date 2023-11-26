@@ -31,7 +31,7 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
       if(GameService(rootService).checkPair(card1, card2)){
          player.score += GameService(rootService).addScore(card1, card2)
       }else{
-         throw Exception("Invalid move.")
+         throw IllegalStateException("Invalid move.")
       }
 
       game.passCounter = 0
@@ -54,7 +54,7 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
       checkNotNull(game) { "No game started yet."}
 
       if(game.drawPile.isEmpty()){
-         throw Exception("there are no cards to draw, choose another action.")
+         throw IllegalStateException("there are no cards to draw, choose another action.")
       }else{
          val removedCard = game.drawPile.pop()
          game.storagePile.push(removedCard)
