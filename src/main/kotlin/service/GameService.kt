@@ -18,11 +18,10 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
      * @param player1Name The name of the first player.
      * @param player2Name The name of the second player.
      */
-    fun startNewGame(player1Name: String, player2Name: String) : Unit
-    {
+    fun startNewGame(player1Name: String, player2Name: String) {
         val game = PyramidGame(player1Name, player2Name)
 
-        var standardDeck = createStandardDeck()
+        val standardDeck = createStandardDeck()
         standardDeck.shuffle()
 
         val pyramidDeck = Stack(standardDeck.popAll(28))
@@ -46,7 +45,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         val deck = Stack<Card>()
         for(suit in CardSuit.values()){
             for(value in CardValue.values()){
-                var card = Card(suit, value)
+                val card = Card(suit, value)
                 deck.push(card)
             }
         }
@@ -64,8 +63,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
      * @param allCards A list of cards to be arranged into the pyramid.
      * @throws IllegalArgumentException If the number of cards provided is not 28.
      */
-    fun createPyramid(allCards: List<Card>) : Unit
-    {
+    fun createPyramid(allCards: List<Card>) {
         require(allCards.size == 28) {
             "Provided list of cards' length must be a total of 28, but ${allCards.size} isn't."
         }
@@ -96,8 +94,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
      * and then triggers the end game refreshables.
      * @throws IllegalStateException If no game is currently running.
      */
-    fun endGame() : Unit
-    {
+    fun endGame() {
         val game = rootService.currentGame
         checkNotNull(game) { "No game currently running."}
 
@@ -111,15 +108,9 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
     /**
      * Switches the current player's turn in the game.
      */
-    fun switchPlayer() : Unit
-    {
+    fun switchPlayer() {
         val playerOnesTurn = rootService.currentGame?.playerOnesTurn
-        if(playerOnesTurn == true){
-            rootService.currentGame?.playerOnesTurn = false
-        }
-        else{
-            rootService.currentGame?.playerOnesTurn = true
-        }
+        rootService.currentGame?.playerOnesTurn = playerOnesTurn != true
     }
 
     /**
@@ -154,7 +145,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
      * @param card2 The second card in the pair to be removed.
      * @throws IllegalStateException If no game is currently running.
      */
-    fun removePair(card1: Card, card2: Card) : Unit{
+    fun removePair(card1: Card, card2: Card) {
         val game = rootService.currentGame
         checkNotNull(game) { "No game currently running."}
 
@@ -171,7 +162,7 @@ class GameService(private val rootService: RootService): AbstractRefreshingServi
         with(game.storagePile) {
             if (isNotEmpty()) {
                 if (peek() == card1 || peek() == card2) {
-                    println("Removed from reserve pile: ${game.storagePile.peek().toString()}")
+                    println("Removed from reserve pile: ${game.storagePile.peek()}")
                     game.collectedStoragePile.push(pop())
                 }
             }

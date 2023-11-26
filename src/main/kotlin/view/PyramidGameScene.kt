@@ -23,7 +23,8 @@ import java.awt.Color
  *
  * @property rootService Instance of RootService for accessing and modifying game state and logic.
  */
-class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1920, 1240), Refreshable {
+class PyramidGameScene (private val rootService: RootService) :
+    BoardGameScene(1920, 1240), Refreshable {
 
     /**
      * Labels for displaying the names and points of the players. Positioned on the game scene
@@ -181,14 +182,18 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
         checkNotNull(game) { "No game found." }
 
         // Reset styles for both player labels to default
-        player1NameLabel.font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
-        player2NameLabel.font = Font(size = 67, color = Color.BLACK, fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+        player1NameLabel.font = Font(size = 67, color = Color.BLACK,
+            fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+        player2NameLabel.font = Font(size = 67, color = Color.BLACK,
+            fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
 
         // Highlight the label of the current player
         if (game.playerOnesTurn) {
-            player1NameLabel.font = Font(size = 67, color = Color(208, 0, 0), fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+            player1NameLabel.font = Font(size = 67, color = Color(208, 0, 0),
+                fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
         } else {
-            player2NameLabel.font = Font(size = 67, color = Color(208, 0, 0), fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
+            player2NameLabel.font = Font(size = 67, color = Color(208, 0, 0),
+                fontWeight = Font.FontWeight.BOLD, family = "Copperplate" )
         }
     }
 
@@ -291,7 +296,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     /**
      * Checks if the given card view corresponds to the top card of the reserve pile.
      *
-     * @param cardView The card view to check.
+     * @param card The card view to check.
      * @return True if the card view matches the top card of the reserve pile, false otherwise.
      * @throws IllegalStateException if the game is not currently running.
      */
@@ -346,12 +351,9 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
                 onFinished = {
 
                     //--------------------------------------------
-                    if (rootService.gameService.checkPair(card1, card2) &&
-                       (isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1]) ||
-                       (isEdgeCard(selectedCards[0]) && isCardOnReservePile(selectedCards[1])) ||
-                       (isEdgeCard(selectedCards[1]) && isCardOnReservePile(selectedCards[0])))) {
+                    if (isValidPairSelection(card1, card2)) {
 
-                        println("Removed Cards: ${card1.toString()} , ${card2.toString()}")
+                        println("Removed Cards: $card1 , $card2")
 
                         rootService.playerActionService.selectPair(currentPlayer(), card1, card2)
                         highlightCurrentPlayer()
@@ -377,6 +379,17 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
     }
 
     /**
+     * Checks if a pair of cards (both can be from the pyramid and reserve pile) is a valid pair.
+     * Main Condition: if a card is chosen from the pyramid, it should be an edge cards.
+     */
+    private fun isValidPairSelection(card1: Card, card2: Card): Boolean {
+        return rootService.gameService.checkPair(card1, card2) &&
+                (isEdgeCard(selectedCards[0]) && isEdgeCard(selectedCards[1]) ||
+                        (isEdgeCard(selectedCards[0]) && isCardOnReservePile(selectedCards[1])) ||
+                        (isEdgeCard(selectedCards[1]) && isCardOnReservePile(selectedCards[0])))
+    }
+
+    /**
      * Initializes a stack view with card views based on a given stack of cards. Each card in the stack
      * is represented by a card view in the stack view, and the mappings are added to the global card map.
      *
@@ -386,7 +399,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
      */
     private fun initializeStackView(stack: Stack<Card>, stackView: LabeledStackView, cardImageLoader: CardImageLoader){
         stackView.clear()
-        stack.peekAll().forEach(){ card ->
+        stack.peekAll().forEach { card ->
             val cardView = CardView(
                 height = 165,
                 width = 110,
@@ -473,7 +486,7 @@ class PyramidGameScene (private val rootService: RootService) : BoardGameScene(1
 
         if(rootService.gameService.checkPair( removedCards[0], removedCards[1])){
 
-            selectedCards.forEach(){ card ->
+            selectedCards.forEach { card ->
                 if(reservePile.isNotEmpty() && card == reservePile.peek()){
                     reservePile.pop()
                 } else removeComponents(card)

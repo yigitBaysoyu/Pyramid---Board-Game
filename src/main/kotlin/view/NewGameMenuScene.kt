@@ -2,10 +2,8 @@ package view
 
 import service.RootService
 import tools.aqua.bgw.components.uicomponents.Button
-import tools.aqua.bgw.components.uicomponents.Label
 import tools.aqua.bgw.components.uicomponents.TextField
 import tools.aqua.bgw.core.MenuScene
-import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 
 /**
@@ -15,17 +13,18 @@ import tools.aqua.bgw.visual.ImageVisual
  *
  * @property rootService Instance of RootService to interact with game service.
  */
-class NewGameMenuScene(private val rootService: RootService) : MenuScene(width = 410 , height = 490, background = ImageVisual("NewGameArtwork.png")), Refreshable {
+class NewGameMenuScene(private val rootService: RootService) :
+    MenuScene(width = 410 , height = 490, background = ImageVisual("NewGameArtwork.png")), Refreshable {
 
     /**
      * Adjustment values for positioning the player input text fields on the scene.
      */
-    val adjustInputPosX = 105
-    val adjustInputPosY = -87
+    private val adjustInputPosX = 105
+    private val adjustInputPosY = -87
 
 
-    val adjustButtonPosX = 100
-    val adjustButtonPosY = 84
+    private val adjustButtonPosX = 100
+    private val adjustButtonPosY = 84
 
 
     /**

@@ -5,7 +5,6 @@ import tools.aqua.bgw.components.uicomponents.Button
 import tools.aqua.bgw.components.uicomponents.Label
 import tools.aqua.bgw.core.MenuScene
 import tools.aqua.bgw.util.Font
-import tools.aqua.bgw.visual.ColorVisual
 import tools.aqua.bgw.visual.ImageVisual
 import java.awt.Color
 
@@ -14,7 +13,8 @@ import java.awt.Color
  * the names and scores of both players, and the game outcome (winner, loser, or draw). Players can choose
  * to start a new game or quit from this scene.
  */
-class GameFinishedMenuScene (private val rootService: RootService) : MenuScene(width = 410 , height = 490, background = ImageVisual("GameOverArtwork.png")), Refreshable {
+class GameFinishedMenuScene (private val rootService: RootService) :
+    MenuScene(width = 410 , height = 490, background = ImageVisual("GameOverArtwork.png")), Refreshable {
 
     private val labelWidth = 125
     private val labelHeight = 50

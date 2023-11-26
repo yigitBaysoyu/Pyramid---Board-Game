@@ -23,7 +23,7 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
     * @param card2 The second card selected.
     * @throws Exception if the move is invalid or if no game has started yet.
     */
-   fun selectPair(player: Player, card1: Card, card2: Card) : Unit{
+   fun selectPair(player: Player, card1: Card, card2: Card) {
 
       val game = rootService.currentGame
       checkNotNull(game) { "No game started yet."}
@@ -44,12 +44,12 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
 
    /**
     * Draws the top card from the draw pile and places it on top of the reserve pile if possible.
-    * It also resets the pass counter and updates all refreshables to reflect the change in game state.
+    * It also resets the pass counter and updates all refreshable s to reflect the change in game state.
     *
     * @param player The player performing the action.
     * @throws Exception if there are no cards to draw or if no game has started yet.
     */
-   fun useDrawPile(player: Player) : Unit{
+   fun useDrawPile(player: Player) {
       val game = rootService.currentGame
       checkNotNull(game) { "No game started yet."}
 
@@ -70,12 +70,12 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
 
    /**
     * Represents a player's decision to pass their turn. It increments the game's pass counter
-    * and switches the turn to the other player. It also triggers an update for all refreshables.
+    * and switches the turn to the other player. It also triggers an update for all refreshable s.
     *
     * @param player The player who is passing their turn.
     * @throws Exception if no game has started yet.
     */
-   fun pass(player: Player) : Unit{
+   fun pass(player: Player) {
       val game = rootService.currentGame
       checkNotNull(game) { "No game started yet."}
 
