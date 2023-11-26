@@ -53,10 +53,18 @@ class PyramidApplication : BoardGameApplication("Pyramid Game"), Refreshable {
 
     }
 
+    /**
+     * Refreshes the application after starting a new game. This method hides the menu scene,
+     * transitioning to the game scene for gameplay.
+     */
     override fun refreshAfterStartNewGame() {
         this.hideMenuScene()
     }
 
+    /**
+     * Refreshes the application after a game ends. It displays the game finished menu scene,
+     * showing the results of the game and providing options to start a new game or exit.
+     */
     override fun refreshAfterGameEnd() {
         this.showMenuScene(gameFinishedMenuScene)
     }
