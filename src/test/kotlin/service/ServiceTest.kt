@@ -135,10 +135,14 @@ class ServiceTest {
         assertTrue(testRefreshable.refreshAfterStartNewGameCalled)
         assertNotNull(mc.currentGame)
 
-        assertEquals(24, mc.currentGame!!.drawPile.size, "Draw pile should have correct number of cards")
-        assertEquals(28, mc.currentGame!!.pyramid.flatten().size, "Pyramid should have correct number of cards")
-        assertTrue(mc.currentGame!!.storagePile.isEmpty(), "storagePile should be initialized as an empty Stack")
-        assertTrue(mc.currentGame!!.collectedStoragePile.isEmpty(), "collectedStoragePile should be initialized as an empty Stack")
+        assertEquals(24, mc.currentGame!!.drawPile.size,
+            "Draw pile should have correct number of cards")
+        assertEquals(28, mc.currentGame!!.pyramid.flatten().size,
+            "Pyramid should have correct number of cards")
+        assertTrue(mc.currentGame!!.storagePile.isEmpty(),
+            "storagePile should be initialized as an empty Stack")
+        assertTrue(mc.currentGame!!.collectedStoragePile.isEmpty(),
+            "collectedStoragePile should be initialized as an empty Stack")
     }
 
     /**
@@ -160,24 +164,25 @@ class ServiceTest {
     }
 
     /**
-     * This test method uses [setUpGame] with a predetermined set of cards [cards] to create a deterministic game environment.
-     * It tests several critical actions and scenarios in the game's flow, including:
+     * This test method uses [setUpGame] with a predetermined set of cards [cards] to create a deterministic
+     * game environment. It tests several critical actions and scenarios in the game's flow, including:
      *
-     * - Selecting and removing valid pairs of cards by players, verifying that the correct cards are moved to the collected storage pile
-     *   and that the appropriate refresh action is called. It checks this for multiple pairs and both players.
+     * - Selecting and removing valid pairs of cards by players, verifying that the correct cards are moved to the
+     *   collected storage pile and that the appropriate refresh action is called. It checks this for multiple pairs
+     *   and both players.
      *
-     * - Using the draw pile to add a card to the storage pile, ensuring the top card of the draw pile is moved correctly,
-     *   and the corresponding refresh action is invoked.
+     * - Using the draw pile to add a card to the storage pile, ensuring the top card of the draw pile is moved
+     *   correctly, and the corresponding refresh action is invoked.
      *
-     * - Selecting a pair that includes a card from the storage pile and a card from the pyramid, confirming that the pair is
-     *   correctly removed and added to the collected storage pile.
+     * - Selecting a pair that includes a card from the storage pile and a card from the pyramid, confirming that the
+     *   pair is correctly removed and added to the collected storage pile.
      *
      * - Attempting to select an invalid pair of cards, which should fail and not trigger a refresh action.
      *
      * - A player passing their turn, verifying that the pass action triggers the appropriate refresh.
      *
-     * This method simulates a sequence of turns in the game, testing player interactions, game logic, and the integration
-     * between the game state and the refresh system.
+     * This method simulates a sequence of turns in the game, testing player interactions, game logic, and the
+     * integration between the game state and the refresh system.
      */
     @Test
     fun testPlayerAction(){
