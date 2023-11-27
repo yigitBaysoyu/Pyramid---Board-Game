@@ -1,70 +1,54 @@
 package entity
 
-import entity.*
-import org.junit.jupiter.api.BeforeEach
 import kotlin.test.*
 
 /**
- * This test class focuses on the functionality and behavior of the PyramidGame entity.
+ * PyramidGameTest is a test class for PyramidGame.
+ *
+ * It includes unit tests to validate the correct initialization and behavior of the PyramidGame class.
  */
 class PyramidGameTest {
 
-    private lateinit var game: PyramidGame
-
     /**
-     * Set up a basic game environment before each test.
-     */
-    @BeforeEach
-    fun setup() {
-        game = PyramidGame(player1Name = "Alice", player2Name = "Bob")
-    }
-
-    /**
-     * Test to ensure the game initializes with the turn set to player one.
+     * Tests the initial state of the PyramidGame upon creation.
+     *
+     * This test ensures that all properties and elements of the PyramidGame are correctly
+     * initialized to their default states, including player turn, card counts, player details,
+     * and the state of various card stacks.
      */
     @Test
-    fun testInitialPlayerTurn() {
-        assertTrue(game.playerOnesTurn)
+    fun testInitialization() {
+        // Create a new instance of PyramidGame with player names "Alice" and "Bob"
+        val game = PyramidGame("Alice", "Bob")
+
+        // Assert that player one's turn is initialized to true
+        assertEquals(true, game.playerOnesTurn, "playerOnesTurn should be initialized to true")
+
+        // Assert that the flipped card count starts at 0
+        assertEquals(0, game.flippedCardCount, "flippedCardCount should be initialized to 0")
+
+        // Assert that the pass counter starts at 0
+        assertEquals(0, game.passCounter, "passCounter should be initialized to 0")
+
+        // Assert that the pyramid is initialized as an empty mutable list
+        assertTrue(game.pyramid.isEmpty(), "pyramid should be initialized as an empty MutableList")
+
+        // Assert that the draw pile is initialized as an empty stack
+        assertTrue(game.drawPile.isEmpty(), "drawPile should be initialized as an empty Stack")
+
+        // Assert that the collected storage pile is initialized as an empty stack
+        assertTrue(game.collectedStoragePile.isEmpty(), "collectedStoragePile should be initialized as an empty Stack")
+
+        // Assert that the storage pile is initialized as an empty stack
+        assertTrue(game.storagePile.isEmpty(), "storagePile should be initialized as an empty Stack")
+
+        // Assert that player1 is correctly initialized with the name "Alice" and marked as the first player
+        assertEquals("Alice", game.player1.name, "player1 should be initialized with the correct name")
+        assertTrue(game.player1.isFirstPlayer, "player1 should be marked as the first player")
+
+        // Assert that player2 is correctly initialized with the name "Bob" and not marked as the first player
+        assertEquals("Bob", game.player2.name, "player2 should be initialized with the correct name")
+        assertFalse(game.player2.isFirstPlayer, "player2 should not be marked as the first player")
     }
 
-    /**
-     * Test to ensure the game initializes with no flipped cards.
-     */
-    @Test
-    fun testInitialFlippedCardCount() {
-        assertEquals(0, game.flippedCardCount)
-    }
-
-    /**
-     * Test to ensure the game initializes with no consecutive passes.
-     */
-    @Test
-    fun testInitialPassCounter() {
-        assertEquals(0, game.passCounter)
-    }
-
-    /**
-     * Test to ensure players are correctly initialized when a new game is started.
-     */
-    @Test
-    fun testPlayersInitializedCorrectly() {
-        assertEquals("Alice", game.player1.name)
-        assertTrue(game.player1.isFirstPlayer)
-        assertEquals(0, game.player1.score)
-
-        assertEquals("Bob", game.player2.name)
-        assertFalse(game.player2.isFirstPlayer)
-        assertEquals(0, game.player2.score)
-    }
-
-    /**
-     * Test to ensure the initial state of all card piles in the game is empty.
-     */
-    @Test
-    fun testInitialPileSizes() {
-        assertTrue(game.drawPile.isEmpty())
-        assertTrue(game.pyramid.isEmpty())
-        assertTrue(game.collectedStoragePile.isEmpty())
-        assertTrue(game.storagePile.isEmpty())
-    }
 }

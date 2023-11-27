@@ -49,6 +49,41 @@ class CardTest {
     }
 
     /**
+     * Test suite for the getIntValue method in the Card class.
+     *
+     * This test ensures that the getIntValue method returns the correct integer value
+     * for each card in the deck, covering number cards, face cards, and the Ace card.
+     * It checks the following scenarios:
+     * - Number cards (Two through Ten) should return their respective numeric values.
+     * - Face cards (Jack, Queen, King) should return values 11, 12, and 13 respectively.
+     * - The Ace card should return a default value of 1 and also supports a custom value, which is also tested.
+     */
+    @Test
+    fun testGetIntValue() {
+        // Testing number cards
+        assertEquals(2, Card(CardSuit.SPADES, CardValue.TWO).getIntValue())
+        assertEquals(3, Card(CardSuit.CLUBS, CardValue.THREE).getIntValue())
+        assertEquals(4, Card(CardSuit.HEARTS, CardValue.FOUR).getIntValue())
+        assertEquals(5, Card(CardSuit.DIAMONDS, CardValue.FIVE).getIntValue())
+        assertEquals(6, Card(CardSuit.SPADES, CardValue.SIX).getIntValue())
+        assertEquals(7, Card(CardSuit.CLUBS, CardValue.SEVEN).getIntValue())
+        assertEquals(8, Card(CardSuit.HEARTS, CardValue.EIGHT).getIntValue())
+        assertEquals(9, Card(CardSuit.DIAMONDS, CardValue.NINE).getIntValue())
+        assertEquals(10, Card(CardSuit.SPADES, CardValue.TEN).getIntValue())
+
+        // Testing face cards
+        assertEquals(11, jackOfClubs.getIntValue())
+        assertEquals(12, queenOfHearts.getIntValue())
+        assertEquals(13, Card(CardSuit.DIAMONDS, CardValue.KING).getIntValue())
+
+        // Testing Ace with default value
+        assertEquals(1, aceOfSpades.getIntValue())
+
+        // Testing Ace with a custom value
+        assertEquals(14, aceOfSpades.getIntValue(14))
+    }
+
+    /**
      * Check if two cards with the same CardSuit/CardValue combination are equal
      * in the sense of the `==` operator, but not the same in the sense of
      * the `===` operator.

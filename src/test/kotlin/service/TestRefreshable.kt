@@ -4,6 +4,10 @@ import entity.Card
 import entity.Player
 import view.Refreshable
 
+/**
+ * [Refreshable] implementation that refreshes nothing, but remembers
+ * if a refresh method has been called (since last [reset])
+ */
 class TestRefreshable: Refreshable {
 
     var refreshAfterStartNewGameCalled: Boolean = false
@@ -37,7 +41,9 @@ class TestRefreshable: Refreshable {
         refreshAfterPassCalled = true
     }
 
-    // Resets all flags to false, useful for reusing the same TestRefreshable across multiple tests
+    /**
+     * resets all *Called properties to false
+     */
     fun reset() {
         refreshAfterStartNewGameCalled = false
         refreshAfterGameEndCalled = false

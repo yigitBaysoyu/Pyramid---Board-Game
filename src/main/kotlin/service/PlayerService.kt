@@ -82,6 +82,10 @@ class PlayerService(private val rootService: RootService) : AbstractRefreshingSe
       game.passCounter++
       GameService(rootService).switchPlayer()
       rootService.currentGame = game
+
+      if (game.passCounter == 2)(
+         onAllRefreshables { refreshAfterGameEnd() }
+      )
       onAllRefreshables { refreshAfterPass(player) }
 
    }
